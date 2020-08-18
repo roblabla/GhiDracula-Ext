@@ -1,0 +1,70 @@
+plugins {
+	id 'com.github.johnrengelman.shadow' version '6.0.0'
+}
+
+def ghidraInstallDir
+
+if (System.env.GHIDRA_INSTALL_DIR) {
+	ghidraInstallDir = System.env.GHIDRA_INSTALL_DIR
+}
+else if (project.hasProperty("GHIDRA_INSTALL_DIR")) {
+	ghidraInstallDir = project.getProperty("GHIDRA_INSTALL_DIR")
+}
+else {
+	ghidraInstallDir = "C:/Users/roblabla/Documents/ghidra_9.2_DEV_20200311/ghidra_9.2_DEV"
+}
+
+
+if (ghidraInstallDir) {
+	apply from: new File(ghidraInstallDir).getCanonicalPath() + "/support/buildExtension.gradle"
+}
+else {
+	throw new GradleException("GHIDRA_INSTALL_DIR is not defined!")
+}
+
+apply plugin: 'eclipse'
+
+
+eclipse.project.name = 'Ghidra Dark'
+
+repositories {
+	maven {
+		url "https://repo.spring.io/plugins-release/"
+	}
+	mavenCentral()
+}
+
+def pathInZip = "${project.name}"
+
+dependencies {
+	shadow 'com.bulenkov:darcula:2018.2'
+	shadow group: 'net.bytebuddy', name: 'byte-buddy', version: '1.10.14'
+	shadow group: 'net.bytebuddy', name: 'byte-buddy-agent', version: '1.10.14'
+}
+
+shadowJar {
+	configurations = [project.configurations.shadow]
+}
+def ZIP_NAME_PREFIX = "${DISTRO_PREFIX}_${RELEASE_NAME}"
+task addShadowJar (type: Zip) {
+	baseName "${ZIP_NAME_PREFIX}_${project.name}-SHADOW"
+	extension 'zip'
+	destinationDir file("dist")
+	version ''
+	duplicatesStrategy 'exclude'
+	includeEmptyDirs false
+
+	from (shadowJar) {
+		rename "GhidraDark-all.jar", "GhidraDark.jar"
+		into pathInZip + "/lib"
+	}
+
+	from (zipTree(tasks["buildExtension"].archiveFile)) {
+	    eachFile {
+	        path -= ~/^.+?\//
+	    }
+		into pathInZip
+	}.dependsOn(buildExtension)
+
+}
+
