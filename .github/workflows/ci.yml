@@ -22,11 +22,11 @@ jobs:
           architecture: x64
       - name: "Install official ghidra release"
         uses: er28-0652/setup-ghidra@master
-        if: matrix.ghidra != "DEV"
+        if: matrix.ghidra != 'DEV'
         with:
           version: ${{ matrix.ghidra }}
       - name: "Install an in-dev ghidra release"
-        if: matrix.ghidra == "DEV"
+        if: matrix.ghidra == 'DEV'
         run: |
           curl -s https://api.github.com/repos/jgm/pandoc/releases/latest | jq -r .assets[0].browser_download_url | xargs curl -L -o release.zip
           unzip -d ghidra_installation release.zip
