@@ -28,7 +28,7 @@ jobs:
       - name: "Install an in-dev ghidra release"
         if: matrix.ghidra == 'DEV'
         run: |
-          curl -s https://api.github.com/repos/jgm/pandoc/releases/latest | jq -r .assets[0].browser_download_url | xargs curl -L -o release.zip
+          curl -s https://api.github.com/repos/roblabla/ghidra-ci/releases/latest | jq -r .assets[0].browser_download_url | xargs curl -L -o release.zip
           unzip -d ghidra_installation release.zip
           echo ::set-env name=GHIDRA_INSTALL_DIR::$PWD/ghidra_installation/$(ls ghidra_installation)
       - uses: eskatos/gradle-command-action@v1
