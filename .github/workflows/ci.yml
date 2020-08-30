@@ -1,0 +1,47 @@
+name: Build Plugin
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+    inputs: {}
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ghidra: ["9.1", "9.1.1", "9.1.2", "DEV"]
+    continue-on-error: ${{ matrix.ghidra == 'DEV' }}
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "11"
+          java-package: jdk
+          architecture: x64
+      - name: "Install official ghidra release"
+        uses: er28-0652/setup-ghidra@master
+        if: matrix.ghidra != "DEV"
+        with:
+          version: ${{ matrix.ghidra }}
+      - name: "Install an in-dev ghidra release"
+        if: matrix.ghidra == "DEV"
+        run: |
+          curl -s https://api.github.com/repos/jgm/pandoc/releases/latest | jq -r .assets[0].browser_download_url | xargs curl -L -o release.zip
+          unzip -d ghidra_installation release.zip
+          echo ::set-env name=GHIDRA_INSTALL_DIR::$PWD/ghidra_installation/$(ls ghidra_installation)
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          gradle-version: current
+          arguments: -PGHIDRA_INSTALL_DIR=${{ env.GHIDRA_INSTALL_DIR }} addShadowJar
+      - name: Find dist file
+        id: find-dist
+        run: echo ::set-output name=dist::$(ls dist/*-SHADOW.zip)
+      - uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/${{ steps.find-dist.outputs.dist }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
