@@ -160,24 +160,13 @@ public class GhidraDarkPlugin extends ProgramPlugin {
 
 		setStatic(FilterTextField.class, "FILTERED_BACKGROUND_COLOR", FilterTextField_FILTERED_BACKGROUND_COLOR);
 		hookMethod(AbstractGCellRenderer.class, "getBackgroundColorForRow", "getBackgroundColorForRow", c(int.class));
-		hookMethod(AbstractGCellRenderer.class, "getDefaultBackgroundColor", "getDefaultBackgroundColor", c());
+		// It looks like hooking the same class twice causes the earlier hook to be lost... oops.
+		//hookMethod(AbstractGCellRenderer.class, "getDefaultBackgroundColor", "getDefaultBackgroundColor", c());
 		hookMethod(GTableHeaderRenderer.class, "getBackgroundPaint", "getBackgroundPaint", c(), f(boolean.class, "isPaintingPrimarySortColumn"));
 
 		try {
 			BasicLookAndFeel dracula = new DarculaLaf();
 			UIManager.setLookAndFeel(dracula);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		try {
-			Method m = AbstractGCellRenderer.class.getDeclaredMethod("getDefaultBackgroundColor");
-			new ByteBuddy()
-					.redefine(AbstractGCellRenderer.class)
-					.method(ElementMatchers.is(m))
-					.intercept(MethodCall.invoke(GhidraDarkPlugin.class.getMethod("getDefaultBackgroundColor")))
-					.make()
-					.load(AbstractGCellRenderer.class.getClassLoader(), ClassReloadingStrategy.fromInstalledAgent());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
