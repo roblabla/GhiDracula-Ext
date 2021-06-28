@@ -29,7 +29,7 @@ eclipse.project.name = 'Ghidra Dark'
 
 repositories {
 	maven {
-		url "https://repo.spring.io/plugins-release/"
+		url "https://www.beatunes.com/repo/maven2/"
 	}
 	mavenCentral()
 }
@@ -37,7 +37,7 @@ repositories {
 def pathInZip = "${project.name}"
 
 dependencies {
-	shadow 'com.bulenkov:darcula:2018.2'
+	shadow group: 'com.bulenkov', name: 'darcula', version: '0.9.3'
 	shadow group: 'net.bytebuddy', name: 'byte-buddy', version: '1.10.14'
 	shadow group: 'net.bytebuddy', name: 'byte-buddy-agent', version: '1.10.14'
 }
