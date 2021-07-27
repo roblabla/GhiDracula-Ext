@@ -11,7 +11,30 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ghidra: ["9.1", "9.1.1", "9.1.2", "DEV"]
+        ghidra: ["9.1", "9.1.1", "9.1.2", "9.2", "9.2.1", "9.2.2", "9.2.3", "9.2.4", "10.0", "10.0.1", "DEV"]
+        include:
+          - ghidra: 9.1
+            gradle: 6.9
+          - ghidra: 9.1.1
+            gradle: 6.9
+          - ghidra: 9.1.2
+            gradle: 6.9
+          - ghidra: 9.2
+            gradle: 6.9
+          - ghidra: 9.2.1
+            gradle: 6.9
+          - ghidra: 9.2.2
+            gradle: 6.9
+          - ghidra: 9.2.3
+            gradle: 6.9
+          - ghidra: 9.2.4
+            gradle: 6.9
+          - ghidra: 10.0
+            gradle: 7.1.1
+          - ghidra: 10.0.1
+            gradle: 7.1.1
+          - ghidra: DEV
+            gradle: current
     continue-on-error: ${{ matrix.ghidra == 'DEV' }}
     steps:
       - uses: actions/checkout@v1
@@ -22,18 +45,31 @@ jobs:
           architecture: x64
       - name: "Install official ghidra release"
         uses: er28-0652/setup-ghidra@master
-        if: matrix.ghidra != "DEV"
+        if: ${{ matrix.ghidra != 'DEV' }}
         with:
           version: ${{ matrix.ghidra }}
-      - name: "Install an in-dev ghidra release"
-        if: matrix.ghidra == "DEV"
+      - name: "Install an in-dev ghidra release (step 1)"
+        if: ${{ matrix.ghidra == 'DEV' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: "roblabla/ghidra-ci"
+          latest: true
+          fileName: "release.zip"
+      - name: "Install an in-dev ghidra release (step 2)"
+        uses: ihiroky/extract-action@v1
+        if: ${{ matrix.ghidra == 'DEV' }}
+        with:
+          file_path: release.zip
+          extract_dir: "/tmp/ghidra-dev"
+      - name: "Install an in-dev ghidra release (step 3)"
+        if: ${{ matrix.ghidra == 'DEV' }}
         run: |
-          curl -s https://api.github.com/repos/jgm/pandoc/releases/latest | jq -r .assets[0].browser_download_url | xargs curl -L -o release.zip
-          unzip -d ghidra_installation release.zip
-          echo ::set-env name=GHIDRA_INSTALL_DIR::$PWD/ghidra_installation/$(ls ghidra_installation)
+          GHIDRA_INSTALL_DIR=$(echo /tmp/ghidra-dev/*)
+          echo "Setting GHIDRA_INSTALL_DIR to $GHIDRA_INSTALL_DIR"
+          echo "GHIDRA_INSTALL_DIR=$GHIDRA_INSTALL_DIR" >> $GITHUB_ENV
       - uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: ${{ matrix.gradle }}
           arguments: -PGHIDRA_INSTALL_DIR=${{ env.GHIDRA_INSTALL_DIR }} addShadowJar
       - name: Find dist file
         id: find-dist
@@ -41,7 +77,7 @@ jobs:
       - uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/${{ steps.find-dist.outputs.dist }}
+          file: ${{ steps.find-dist.outputs.dist }}
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
