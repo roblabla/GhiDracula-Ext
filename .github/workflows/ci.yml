@@ -10,6 +10,7 @@ jobs:
   build_and_publish:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ghidra: ["9.1", "9.1.1", "9.1.2", "9.2", "9.2.1", "9.2.2", "9.2.3", "9.2.4", "10.0", "10.0.1", "DEV"]
         include:
