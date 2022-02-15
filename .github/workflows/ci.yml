@@ -34,6 +34,18 @@ jobs:
             gradle: 7.1.1
           - ghidra: 10.0.1
             gradle: 7.1.1
+          - ghidra: 10.0.2
+            gradle: 7.1.1
+          - ghidra: 10.0.3
+            gradle: 7.1.1
+          - ghidra: 10.0.4
+            gradle: 7.1.1
+          - ghidra: 10.1
+            gradle: 7.1.1
+          - ghidra: 10.1.1
+            gradle: 7.1.1
+          - ghidra: 10.1.2
+            gradle: 7.1.1
           - ghidra: DEV
             gradle: current
     continue-on-error: ${{ matrix.ghidra == 'DEV' }}
